@@ -1,5 +1,19 @@
-import { Link, redirect } from "remix";
+import { Link, redirect, useActionData, json } from "remix";
 import { db } from "~/utils/db.server";
+
+function validateTitle(title) {
+  console.log(`checking title ${title}`);
+  if (typeof title !== "string" || title.length < 3) {
+    return "Title should be at least 3 characters long";
+  }
+}
+function validateBody(body) {
+  console.log(`checking body ${body}`);
+
+  if (typeof body !== "string" || body.length < 10) {
+    return "body should be at least 10 characters long";
+  }
+}
 
 export const action = async ({ request }) => {
   const form = await request.formData();
@@ -8,12 +22,24 @@ export const action = async ({ request }) => {
 
   const fields = { title, body };
 
-  const post = await db.post.create({ data: fields });
+  const fieldErrors = {
+    title: validateTitle(title),
+    body: validateBody(body),
+  };
+
+  console.log({ fieldErrors, fields });
+  if (Object.values(fieldErrors).some(Boolean)) {
+    return json({ fieldErrors, fields }, { status: 400 });
+  }
+
+  console.log("Trying to create new post with fields.");
+  // const post = await db.post.create({ data: fields });
 
   return redirect(`/posts/${post.id}`);
 };
 
 function NewPost() {
+  const actionData = useActionData();
   return (
     <>
       <div className="page-header">
@@ -27,6 +53,9 @@ function NewPost() {
           <div className="form-control">
             <label htmlFor="title">Title</label>
             <input type="text" name="title" id="title" />
+            <div className="error">
+              <p>{actionData?.fieldErrors?.title && ({actionData?})} </p>
+            </div>
           </div>
           <div className="form-control">
             <label htmlFor="body">Post body</label>
