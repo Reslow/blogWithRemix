@@ -33,13 +33,14 @@ export const action = async ({ request }) => {
   }
 
   console.log("Trying to create new post with fields.");
-  // const post = await db.post.create({ data: fields });
+  const post = await db.post.create({ data: fields });
 
   return redirect(`/posts/${post.id}`);
 };
 
 function NewPost() {
   const actionData = useActionData();
+  console.log(actionData);
   return (
     <>
       <div className="page-header">
@@ -52,14 +53,31 @@ function NewPost() {
         <form method="POST">
           <div className="form-control">
             <label htmlFor="title">Title</label>
-            <input type="text" name="title" id="title" />
+            <input
+              type="text"
+              name="title"
+              id="title"
+              defaultValue={actionData?.fields?.title}
+            />
             <div className="error">
-              <p>{actionData?.fieldErrors?.title && ({actionData?})} </p>
+              <p>
+                {actionData?.fieldErrors?.title &&
+                  actionData?.fieldErrors?.title}
+              </p>
             </div>
           </div>
           <div className="form-control">
             <label htmlFor="body">Post body</label>
-            <textarea name="body" id="body" />
+            <textarea
+              name="body"
+              id="body"
+              defaultValue={actionData?.fields?.body}
+            />
+            <div className="error">
+              <p>
+                {actionData?.fieldErrors?.body && actionData?.fieldErrors?.body}
+              </p>
+            </div>
           </div>
           <button type="submit" className="btn btn-block">
             add post
