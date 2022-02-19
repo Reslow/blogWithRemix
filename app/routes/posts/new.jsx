@@ -14,7 +14,9 @@ function validateBody(body) {
     return "body should be at least 10 characters long";
   }
 }
-
+function badRequest(data) {
+  return json(data, { status: 400 });
+}
 export const action = async ({ request }) => {
   const form = await request.formData();
   const title = form.get("title");
@@ -29,7 +31,7 @@ export const action = async ({ request }) => {
 
   console.log({ fieldErrors, fields });
   if (Object.values(fieldErrors).some(Boolean)) {
-    return json({ fieldErrors, fields }, { status: 400 });
+    return badRequest({ fieldErrors, fields });
   }
 
   console.log("Trying to create new post with fields.");
