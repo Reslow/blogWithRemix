@@ -5,7 +5,7 @@ async function seed() {
   // sample user ava
   const ada = await prisma.user.create({
     data: {
-      username: "Ada",
+      username: "ada",
       // password = twixrox
       passwordHash:
         "$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u",

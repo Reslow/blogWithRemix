@@ -1,5 +1,6 @@
 import { Link, redirect, useActionData, json } from "remix";
 import { db } from "~/utils/db.server";
+import { getUser } from "~/utils/session.server";
 
 function validateTitle(title) {
   console.log(`checking title ${title}`);
@@ -18,6 +19,7 @@ function badRequest(data) {
   return json(data, { status: 400 });
 }
 export const action = async ({ request }) => {
+  const user = await getUser(request);
   const form = await request.formData();
   const title = form.get("title");
   const body = form.get("body");
@@ -35,7 +37,7 @@ export const action = async ({ request }) => {
   }
 
   console.log("Trying to create new post with fields.");
-  const post = await db.post.create({ data: fields });
+  const post = await db.post.create({ data: { ...fields, userId: user.id } });
 
   return redirect(`/posts/${post.id}`);
 };

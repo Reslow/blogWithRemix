@@ -1,6 +1,18 @@
 import { useActionData, json, redirect } from "remix";
 import { db } from "~/utils/db.server";
-import { login } from "~/utils/session.server";
+import { login, createUserSession, register } from "~/utils/session.server";
+
+function validateUsername(username) {
+  if (typeof username !== "string" || username.length < 3) {
+    return "Username should be at least 3 characters long";
+  }
+}
+
+function validatePassword(password) {
+  if (typeof password !== "string" || password.length < 6) {
+    return "Password should be at least 6 characters long";
+  }
+}
 
 function badRequest(data) {
   return json(data, { status: 400 });
@@ -16,29 +28,50 @@ export const action = async ({ request }) => {
 
   const fieldErrors = {
     username: validateUsername(username),
-    password: validateUsername(password),
+    password: validatePassword(password),
   };
 
+  console.log(fieldErrors);
   if (Object.values(fieldErrors).some(Boolean)) {
     return badRequest({ fieldErrors, fields });
   }
+  console.log(loginType);
   switch (loginType) {
     case "login": {
       //   find user
       const user = await login({ username, password });
+
       if (!user) {
         return badRequest({
           fields,
           fieldErrors: { username: " invalid credentials" },
         });
       }
-      // check user
+
       // create user session
+      return createUserSession(user.id, "/posts");
     }
     case "register": {
-      //  check user exist
-      // create user
-      // create user session
+      const userExist = await db.user.findFirst({
+        where: { username },
+      });
+
+      if (userExist) {
+        return badRequest({
+          fields,
+          fieldErrors: { username: `user ${username} already exist ` },
+        });
+      }
+
+      const user = await register({ username, password });
+      if (!user) {
+        return badRequest({
+          fields,
+          formError: "Something went wrong!",
+        });
+      }
+
+      return createUserSession(user.id, "/posts");
     }
     default: {
       return badRequest({
@@ -81,7 +114,7 @@ function Login() {
             <label>
               <input
                 type="radio"
-                name="registerType"
+                name="loginType"
                 id="registerType"
                 value="register"
               />{" "}
